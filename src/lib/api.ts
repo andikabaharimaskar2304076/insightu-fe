@@ -1,3 +1,5 @@
+import api from './axios';
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export async function login(email: string, password: string) {
@@ -38,3 +40,19 @@ export async function register(data: {
 
   return response.json();
 }
+
+export async function getMe(token: string) {
+  const response = await fetch(`${BASE_URL}/me/`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Gagal mengambil data user');
+  }
+
+  return response.json();
+}
+

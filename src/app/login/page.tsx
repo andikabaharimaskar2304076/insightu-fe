@@ -1,7 +1,8 @@
-'use client';
+'use client'
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { login } from '@/lib/api';
+import { getMe, login } from '@/lib/api';
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,17 +11,34 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    try {
-      const data = await login(email, password);
-      localStorage.setItem('access', data.access);
-      localStorage.setItem('refresh', data.refresh);
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message || 'Login gagal');
+  e.preventDefault();
+  setError('');
+
+  try {
+    const data = await login(email, password); // ⬅️ data didefinisikan di sini
+
+    // Simpan ke localStorage (untuk client-side use)
+    localStorage.setItem('access', data.access);
+    localStorage.setItem('refresh', data.refresh);
+
+    // Simpan ke cookie (untuk middleware Next.js)
+    document.cookie = `access=${data.access}; path=/`;
+
+    // Lanjut ke dashboard sesuai role
+    const user = await getMe(data.access);
+
+    if (user.role === 'admin') {
+      router.push('/dashboard/admin');
+    } else if (user.role === 'student') {
+      router.push('/dashboard/student');
+    } else {
+      router.push('/dashboard/psychologist');
     }
-  };
+  } catch (err: any) {
+    setError(err.message || 'Login gagal');
+  }
+};
+
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
