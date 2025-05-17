@@ -13,21 +13,37 @@ import { Phone } from 'lucide-react';
 
 export default function Home() {
   const services = [
-    { id: 1, image: '/service-1.png' },
-    { id: 2, image: '/service-2.png' },
-    { id: 3, image: '/service-3.png' },
+    { id: 1, image: '/images/counseling.png', title: 'Konseling Karier' },
+    { id: 2, image: '/images/test-minat.png', title: 'Tes Minat Bakat' },
+    { id: 3, image: '/images/consult-psychologist.png', title: 'Konsultasi Psikolog' },
   ];
 
   const faqItems = [
-    { id: 1, question: 'Apa itu InsightU?', answer: 'InsightU adalah platform untuk membantu memilih jurusan.' },
-    { id: 2, question: 'Bagaimana cara konsultasi?', answer: 'Kamu bisa login dan memilih jadwal konsultasi.' },
-    { id: 3, question: 'Apakah layanan ini gratis?', answer: 'Beberapa fitur gratis, sebagian premium.' },
-    { id: 4, question: 'Bagaimana cara mendaftar?', answer: 'Klik tombol Register dan isi data kamu.' },
+    {
+      id: 1,
+      question: 'Apa itu InsightU?',
+      answer: 'InsightU adalah platform digital yang menyediakan layanan konseling dan tes minat bakat untuk membantu siswa menemukan jurusan dan karier yang sesuai dengan potensi diri.'
+    },
+    {
+      id: 2,
+      question: 'Bagaimana cara konsultasi?',
+      answer: 'Setelah login, kamu bisa memilih jadwal dan psikolog untuk sesi konsultasi. Kamu juga bisa melihat riwayat sesi dan status sesi sebelumnya.'
+    },
+    {
+      id: 3,
+      question: 'Apakah layanan ini gratis?',
+      answer: 'InsightU menyediakan layanan gratis terbatas untuk fitur dasar. Untuk akses penuh ke tes psikologi lanjutan dan psikolog profesional, pengguna dapat berlangganan.'
+    },
+    {
+      id: 4,
+      question: 'Bagaimana cara mendaftar?',
+      answer: 'Klik tombol Register di pojok kanan atas halaman, lalu isi formulir pendaftaran sesuai dengan data diri kamu. Setelah itu, verifikasi email dan login untuk memulai.'
+    },
   ];
 
   return (
-    <div className="bg-[#c8c4c4] flex flex-row justify-center w-full">
-      <div className="bg-[#c8c4c4] w-full max-w-[1440px]">
+    <div className="bg-white flex flex-row justify-center w-full">
+      <div className="bg-white w-full max-w-[1440px]">
         {/* Header */}
         <header className="flex items-center pt-12 px-24">
           <div className="flex items-center">
@@ -40,12 +56,12 @@ export default function Home() {
             <span className="text-black text-2xl">Beranda</span>
             <span className="text-black text-2xl">Tentang</span>
             <Link href="/login">
-              <Button className="w-[129px] h-[37px] bg-[#4380f0] rounded-none text-white text-2xl">
+              <Button className="px-6 py-2 bg-[#4380f0] rounded-lg text-white text-base font-medium">
                 Login
               </Button>
             </Link>
             <Link href="/register">
-              <Button className="w-[129px] h-[37px] bg-[#4380f0] rounded-none text-white text-2xl">
+              <Button className="px-6 py-2 bg-[#4380f0] rounded-lg text-white text-base font-medium">
                 Register
               </Button>
             </Link>
@@ -54,7 +70,7 @@ export default function Home() {
 
         {/* Hero Section */}
         <section className="mt-[225px] mx-[81px] flex flex-col md:flex-row gap-8">
-          <div className="bg-[#4380f0] w-full max-w-[967px] h-[438px] relative text-white p-12">
+          <div className="bg-[#4380f0] w-full max-w-[967px] h-[438px] relative text-white p-12 rounded-2xl">
             <h2 className="text-3xl md:text-4xl mb-6 font-semibold">
               Anda ada masalah dalam pemilihan Jurusan?
               <br />
@@ -67,9 +83,9 @@ export default function Home() {
           </div>
           <div className="w-[437px] h-[437px]">
             <img
-              src="/hero-character.png"
-              alt="Character"
-              className="w-full h-full object-cover"
+              src="/images/hero-character.png"
+              alt="Karakter Konseling"
+              className="w-full h-full object-cover rounded-xl"
             />
           </div>
         </section>
@@ -81,14 +97,14 @@ export default function Home() {
             {services.map((service) => (
               <Card
                 key={service.id}
-                className="w-full max-w-[380px] h-[503px] bg-[#4380f0] rounded-none"
+                className="w-full max-w-[380px] h-[503px] bg-[#4380f0] rounded-xl text-white"
               >
-                <CardContent className="p-0">
-                  <div className="w-[316px] h-[63px] mt-[58px] mx-auto bg-[#d9d9d9]" />
-                  <div className="flex justify-center mt-[60px]">
+                <CardContent className="p-6 flex flex-col justify-between h-full">
+                  <h3 className="text-2xl font-semibold text-center mb-4">{service.title}</h3>
+                  <div className="flex justify-center">
                     <img
-                      className="w-[230px] h-[230px] object-contain"
-                      alt={`Service ${service.id}`}
+                      className="w-[230px] h-[230px] object-contain rounded"
+                      alt={service.title}
                       src={service.image}
                     />
                   </div>
@@ -106,12 +122,12 @@ export default function Home() {
               <AccordionItem
                 key={item.id}
                 value={`item-${item.id}`}
-                className="mb-[38px]"
+                className="mb-[38px] rounded-md overflow-hidden"
               >
                 <AccordionTrigger className="h-[86px] bg-[#4380f0] px-6 text-white hover:no-underline">
                   {item.question}
                 </AccordionTrigger>
-                <AccordionContent className="bg-[#e0e0e0] p-4">
+                <AccordionContent className="bg-[#e0e0e0] p-4 text-black">
                   {item.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -123,11 +139,10 @@ export default function Home() {
         <section className="mt-[70px] mx-[107px] pb-16">
           <div className="flex items-center gap-4">
             <h2 className="text-black text-[40px]">Kontak</h2>
-            <Phone className="w-[81px] h-[81px]" />
+            <Phone className="w-6 h-6" />
           </div>
-          <div className="mt-4">
-            <div className="w-[496px] h-[154px] bg-[#4380f0]" />
-            <div className="w-[109px] h-8 mt-10 bg-[#4380f0]" />
+          <div className="mt-4 text-lg text-black">
+            <p>Email: andikamaskar@gmail.com</p>
           </div>
         </section>
       </div>
