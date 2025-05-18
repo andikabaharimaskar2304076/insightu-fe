@@ -2,15 +2,51 @@
 
 import withAuth from '@/lib/withAuth';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 function StudentDashboard({ user }: { user?: any }) {
-  const avatarUrl = user?.avatar || '/images/default-avatar.png';
+  const [avatar, setAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/v1/student-profile/', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access')}`,
+          },
+        });
+        const data = await res.json();
+        const avatarPath = data.address_avatar;
+
+        if (avatarPath?.startsWith('/media')) {
+          setAvatar(`http://localhost:8000${avatarPath}`);
+        } else if (avatarPath?.startsWith('http')) {
+          setAvatar(avatarPath);
+        } else {
+          setAvatar(null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch avatar:', err);
+      }
+    };
+
+    fetchAvatar();
+  }, []);
+
+  const avatarUrl = avatar || '/images/default-avatar.png';
 
   return (
     <div className="space-y-8">
       {/* Welcome section */}
       <section className="flex items-center gap-4">
-        <Image src={avatarUrl} alt="User Avatar" width={48} height={48} className="rounded-full object-cover" />
+        <div className="w-12 h-12 relative rounded-full overflow-hidden">
+          <Image
+            src={avatarUrl}
+            alt="User Avatar"
+            fill
+            className="object-cover"
+          />
+        </div>
         <h3 className="text-lg font-semibold">Selamat datang kembali, {user?.username || 'User'}!</h3>
       </section>
 

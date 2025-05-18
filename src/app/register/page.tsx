@@ -21,13 +21,30 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const { username, email, password, role, birth_date } = form;
+    const payload = {
+      username,
+      email,
+      password,
+      role,
+      ...(role === 'student' && { birth_date }),
+    };
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/register/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error('Registrasi gagal');
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Backend error:", errorData);
+        alert(`Gagal registrasi:\n${JSON.stringify(errorData, null, 2)}`);
+        return;
+      }
+
       router.push('/login');
     } catch (err) {
       console.error(err);

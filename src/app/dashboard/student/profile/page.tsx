@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -28,6 +29,7 @@ const studentProfileSchema = z.object({
 });
 
 export default function StudentProfilePage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string>('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -46,18 +48,36 @@ export default function StudentProfilePage() {
   });
 
   useEffect(() => {
+    const access = localStorage.getItem('access');
+    if (!access) {
+      router.push('/login');
+      return;
+    }
+
     const fetchProfile = async () => {
       try {
         const res = await fetch('http://localhost:8000/api/v1/student-profile/', {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('access')}`,
+            Authorization: `Bearer ${access}`,
           },
         });
+
+        if (res.status === 403 || res.status === 401) {
+          router.push('/login');
+          return;
+        }
+
         const data = await res.json();
+
+        if (data.role && data.role !== 'student') {
+          router.push('/unauthorized');
+          return;
+        }
+
         form.reset({
           nisn: data.nisn || '',
           homeroom_teacher: data.homeroom_teacher || '',
-          gender: data.gender || 'male',
+          gender: (data.gender?.toLowerCase() === 'female' ? 'female' : 'male') as 'male' | 'female',
           major: data.major || '',
           birth_date: data.birth_date || '',
           school_name: data.school_name || '',
@@ -72,11 +92,12 @@ export default function StudentProfilePage() {
         }
       } catch (error) {
         console.error('Failed to load student profile:', error);
+        router.push('/login');
       }
     };
 
     fetchProfile();
-  }, [form]);
+  }, [form, router]);
 
   const uploadAvatar = async () => {
     if (!avatarFile) return;
@@ -125,11 +146,11 @@ export default function StudentProfilePage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow">
-      <h2 className="text-2xl font-bold mb-4">Student Profile</h2>
+    <div className="w-full ml-1 mr-24 p-6 bg-white rounded-xl shadow space-y-6">
+      <h2 className="text-2xl font-bold">Student Profile</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <div className="relative w-24 h-24 rounded-full overflow-hidden border">
               <Image
                 src={preview || '/images/default-avatar.png'}
@@ -138,7 +159,7 @@ export default function StudentProfilePage() {
                 className="object-cover"
               />
             </div>
-            <FormItem>
+            <FormItem className="flex-1">
               <FormLabel>Change Avatar</FormLabel>
               <FormControl>
                 <Input
@@ -156,8 +177,10 @@ export default function StudentProfilePage() {
               <FormMessage />
             </FormItem>
           </div>
+
           <Separator />
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="flex flex-col gap-4">
             {['nisn', 'homeroom_teacher', 'major', 'birth_date', 'school_name', 'grade_level'].map((fieldName) => (
               <FormField
                 key={fieldName}
@@ -179,11 +202,11 @@ export default function StudentProfilePage() {
               name="gender"
               control={form.control}
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem>
                   <FormLabel>Gender</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
                       <SelectContent>
@@ -197,7 +220,8 @@ export default function StudentProfilePage() {
               )}
             />
           </div>
-          <Button type="submit" disabled={loading}>
+
+          <Button type="submit" disabled={loading} className="w-full">
             {loading ? 'Saving...' : 'Save Changes'}
           </Button>
         </form>
