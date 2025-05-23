@@ -3,15 +3,45 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { LayoutDashboardIcon, UserIcon, CalendarIcon, MessageSquareIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [avatar, setAvatar] = useState<string>('');
 
   const handleLogout = () => {
     localStorage.removeItem('access');
     router.push('/');
   };
+
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/v1/student-profile/', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access')}`,
+          },
+        });
+        const data = await res.json();
+        const avatarPath = data.address_avatar;
+
+        if (avatarPath?.startsWith('/media')) {
+          setAvatar(`http://localhost:8000${avatarPath}`);
+        } else if (avatarPath?.startsWith('http')) {
+          setAvatar(avatarPath);
+        } else {
+          setAvatar('/images/default-avatar.png');
+        }
+      } catch (err) {
+        console.error('Failed to fetch avatar:', err);
+        setAvatar('/images/default-avatar.png');
+      }
+    };
+
+    fetchAvatar();
+  }, []);
 
   return (
     <div className="min-h-screen flex">
@@ -22,47 +52,38 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           <Link
             href="/dashboard/student"
             className={cn(
-              'block hover:text-[#4380f0]',
+              'flex items-center gap-2 hover:text-[#4380f0]',
               pathname === '/dashboard/student' && 'text-[#4380f0] font-bold'
             )}
           >
-            Dashboard
+            <LayoutDashboardIcon size={16} /> Dashboard
           </Link>
           <Link
             href="/dashboard/student/profile"
             className={cn(
-              'block hover:text-[#4380f0]',
+              'flex items-center gap-2 hover:text-[#4380f0]',
               pathname === '/dashboard/student/profile' && 'text-[#4380f0] font-bold'
             )}
           >
-            Student Profile
+            <UserIcon size={16} /> Profile Student
           </Link>
           <Link
             href="/dashboard/student/schedule"
             className={cn(
-              'block hover:text-[#4380f0]',
+              'flex items-center gap-2 hover:text-[#4380f0]',
               pathname === '/dashboard/student/schedule' && 'text-[#4380f0] font-bold'
             )}
           >
-            Schedule
+            <CalendarIcon size={16} /> Schedule
           </Link>
           <Link
             href="/dashboard/student/messages"
             className={cn(
-              'block hover:text-[#4380f0]',
+              'flex items-center gap-2 hover:text-[#4380f0]',
               pathname === '/dashboard/student/messages' && 'text-[#4380f0] font-bold'
             )}
           >
-            Messages
-          </Link>
-          <Link
-            href="/dashboard/student/settings"
-            className={cn(
-              'block hover:text-[#4380f0]',
-              pathname === '/dashboard/student/settings' && 'text-[#4380f0] font-bold'
-            )}
-          >
-            Settings
+            <MessageSquareIcon size={16} /> Messages
           </Link>
         </nav>
 
@@ -81,6 +102,13 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           <h2 className="text-xl font-semibold capitalize">
             {pathname.includes('/profile') ? 'Student Profile' : 'Dashboard'}
           </h2>
+          <div className="w-10 h-10 relative rounded-full overflow-hidden border">
+            <img
+              src={avatar || '/images/default-avatar.png'}
+              alt="Avatar"
+              className="w-full h-full object-cover"
+            />
+          </div>
         </header>
 
         <div className="p-6">

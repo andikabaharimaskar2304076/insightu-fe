@@ -39,14 +39,6 @@ function StudentDashboard({ user }: { user?: any }) {
     <div className="space-y-8">
       {/* Welcome section */}
       <section className="flex items-center gap-4">
-        <div className="w-12 h-12 relative rounded-full overflow-hidden">
-          <Image
-            src={avatarUrl}
-            alt="User Avatar"
-            fill
-            className="object-cover"
-          />
-        </div>
         <h3 className="text-lg font-semibold">Selamat datang kembali, {user?.username || 'User'}!</h3>
       </section>
 
