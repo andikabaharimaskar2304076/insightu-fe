@@ -2,8 +2,109 @@
 
 import { CalendarIcon, ClockIcon, MessageSquareIcon, PlusCircleIcon, Undo2Icon, UserIcon } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { Separator } from '@/components/ui/separator';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+
+const psychologistAvailability = z.object({
+  // id: z.string().uuid(), // UUIDField = string berbentuk UUID
+  // psychologist: z.string().uuid(), // ForeignKey to UUIDField (juga UUID)
+  day_of_week: z.enum([
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ]), // enum dari pilihan hari
+  start_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, {
+    message: 'Start time must be in HH:MM or HH:MM:SS format',
+  }), // TimeField = format waktu
+  end_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, {
+    message: 'End time must be in HH:MM or HH:MM:SS format',
+  }),
+});
+
+type PsychologistAvailability = z.infer<typeof psychologistAvailability>;
 
 export default function PsychologistDashboardPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState<string>('');
+
+  const form = useForm<PsychologistAvailability>({
+    resolver: zodResolver(psychologistAvailability),
+    defaultValues: {
+      // id: crypto.randomUUID(),
+      // psychologist: '',
+      day_of_week: 'Monday',
+      start_time: '00:00',
+      end_time: '00:00',
+    },
+  });
+
+  const fetchAvailability = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/availabilities/', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`,
+        },
+      });
+      const data = await res.json();
+      form.reset({
+        // id: data.id || crypto.randomUUID(),
+        // psychologist: data.psychologist || '',
+        // day_of_week: data.day_of_week || 'Monday',
+        // start_time: data.start_time || '00:00',
+        // end_time: data.end_time || '00:00',
+        // id: data.id,
+        // psychologist: data.psychologist,
+        day_of_week: data.day_of_week,
+        start_time: data.start_time,
+        end_time: data.end_time,
+      });
+    } catch (error) {
+      console.error('Failed to load psychologist schedule:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAvailability();
+  }, [form]);
+
+  const onSubmit = async (values: PsychologistAvailability) => {
+    setLoading(true);
+    try {
+      await fetchAvailability();
+      const res = await fetch('http://localhost:8000/api/v1/availabilities/', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access')}`,
+        },
+        body: JSON.stringify(values),
+      });
+      if (res.ok) {
+        alert('Availability updated successfully');
+      } else {
+        const error = await res.text();
+        alert('Failed to update availability: ' + error);
+      }
+    } catch (error) {
+      console.error('Update failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Greeting Section */}
@@ -12,7 +113,7 @@ export default function PsychologistDashboardPage() {
           <h2 className="text-2xl font-semibold">Dashboard Psikolog</h2>
           <p className="text-gray-600">Halo, Sandy</p>
         </div>
-        
+
       </div>
 
       {/* Top Section */}
@@ -90,6 +191,38 @@ export default function PsychologistDashboardPage() {
             <p className="text-sm text-gray-600">Lunch Break</p>
           </div>
         </div>
+      </div>
+
+      {/* My Available Schedule */}
+      <div className="bg-white border rounded-lg p-4 shadow-sm">
+        <h3 className="font-semibold text-lg mb-4">My Available Schedule</h3>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="flex flex-col gap-4">
+              {['day_of_week', 'start_time', 'end_time'].map((fieldName) => (
+                
+                <FormField
+                  key={fieldName}
+                  name={fieldName as keyof PsychologistAvailability}
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="capitalize">{fieldName.replace('_', ' ')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </form>
+        </Form>
       </div>
     </div>
   );
