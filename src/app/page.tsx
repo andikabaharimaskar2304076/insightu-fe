@@ -45,16 +45,20 @@ export default function Home() {
     <div className="bg-white flex flex-row justify-center w-full">
       <div className="bg-white w-full max-w-[1440px]">
         {/* Header */}
-        <header className="flex items-center pt-12 px-24">
-          <div className="flex items-center">
-            <h1 className="font-normal text-black text-5xl">InsightU</h1>
-            <div className="ml-8 w-[154px] h-[109px] bg-[#d9d9d9] rounded-full flex items-center justify-center">
-              <span className="text-black text-xl">Logo</span>
+        <header className="flex items-center justify-between pt-12 px-24">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 relative">
+              <img
+                src="/images/logo.png"
+                alt="InsightU Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
+            <h1 className="font-semibold text-black text-4xl">InsightU</h1>
           </div>
-          <nav className="flex ml-auto items-center gap-8">
-            <span className="text-black text-2xl">Beranda</span>
-            <span className="text-black text-2xl">Tentang</span>
+          <nav className="flex items-center gap-8">
+            <span className="text-black text-xl hover:text-[#4380f0] cursor-pointer">Beranda</span>
+            <span className="text-black text-xl hover:text-[#4380f0] cursor-pointer">Tentang</span>
             <Link href="/login">
               <Button className="px-6 py-2 bg-[#4380f0] rounded-lg text-white text-base font-medium">
                 Login
