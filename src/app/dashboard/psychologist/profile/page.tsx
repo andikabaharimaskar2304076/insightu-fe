@@ -14,8 +14,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 const psychologistProfileSchema = z.object({
   license_number: z.string(),
   specialization: z.string(),
-  years_of_experience: z.string(),
-  consultation_fee: z.string(),
+  biography: z.string(),
 });
 
 type PsychologistProfileSchema = z.infer<typeof psychologistProfileSchema>;
@@ -31,8 +30,7 @@ export default function PsychologistProfilePage() {
     defaultValues: {
       license_number: '',
       specialization: '',
-      years_of_experience: '',
-      consultation_fee: '',
+      biography: '',
     },
   });
 
@@ -47,8 +45,7 @@ export default function PsychologistProfilePage() {
       form.reset({
         license_number: data.license_number || '',
         specialization: data.specialization || '',
-        years_of_experience: data.years_of_experience || '',
-        consultation_fee: data.consultation_fee || '',
+        biography: data.biography || '',
       });
       if (data.address_avatar?.startsWith('http')) {
         setPreview(data.address_avatar);
@@ -149,7 +146,7 @@ export default function PsychologistProfilePage() {
           <Separator />
 
           <div className="flex flex-col gap-4">
-            {['license_number', 'specialization', 'years_of_experience', 'consultation_fee'].map((fieldName) => (
+            {['license_number', 'specialization', 'biography'].map((fieldName) => (
               <FormField
                 key={fieldName}
                 name={fieldName as keyof PsychologistProfileSchema}
@@ -158,7 +155,11 @@ export default function PsychologistProfilePage() {
                   <FormItem>
                     <FormLabel className="capitalize">{fieldName.replace('_', ' ')}</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      {fieldName === 'biography' ? (
+                        <textarea {...field} className="w-full p-2 border rounded" rows={4} />
+                      ) : (
+                        <Input {...field} />
+                      )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>

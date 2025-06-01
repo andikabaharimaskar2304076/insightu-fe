@@ -3,7 +3,13 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, UserIcon, MessageSquareIcon, LayoutDashboardIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  UserIcon,
+  MessageSquareIcon,
+  LayoutDashboardIcon,
+  ClockIcon,
+} from 'lucide-react';
 
 export default function PsychologistLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -48,6 +54,15 @@ export default function PsychologistLayout({ children }: { children: React.React
             <CalendarIcon size={16} /> Sessions
           </Link>
           <Link
+            href="/dashboard/psychologist/history"
+            className={cn(
+              'flex items-center gap-2 hover:text-[#4380f0]',
+              pathname === '/dashboard/psychologist/history' && 'text-[#4380f0] font-bold'
+            )}
+          >
+            <ClockIcon size={16} /> History
+          </Link>
+          <Link
             href="/dashboard/psychologist/messages"
             className={cn(
               'flex items-center gap-2 hover:text-[#4380f0]',
@@ -71,7 +86,15 @@ export default function PsychologistLayout({ children }: { children: React.React
         {/* Header */}
         <header className="bg-[#4380f0] text-white flex justify-between items-center px-8 py-4">
           <h2 className="text-xl font-semibold capitalize">
-            {pathname.includes('/sessions') ? 'Counseling Sessions' : pathname.includes('/profile') ? 'Psychologist Profile' : 'Dashboard'}
+            {pathname.includes('/sessions')
+              ? 'Counseling Sessions'
+              : pathname.includes('/profile')
+              ? 'Psychologist Profile'
+              : pathname.includes('/messages')
+              ? 'Messages'
+              : pathname.includes('/history')
+              ? 'Session History'
+              : 'Dashboard'}
           </h2>
           <div className="w-10 h-10 relative rounded-full overflow-hidden border">
             <img
@@ -82,10 +105,7 @@ export default function PsychologistLayout({ children }: { children: React.React
           </div>
         </header>
 
-
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
       </main>
     </div>
   );
