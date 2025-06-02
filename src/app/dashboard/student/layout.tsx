@@ -3,7 +3,13 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { LayoutDashboardIcon, UserIcon, CalendarIcon, MessageSquareIcon } from 'lucide-react';
+import {
+  LayoutDashboardIcon,
+  UserIcon,
+  CalendarIcon,
+  MessageSquareIcon,
+  HistoryIcon // Icon tambahan jika kamu punya custom, kalau tidak, gunakan ulang
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
@@ -77,6 +83,15 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             <CalendarIcon size={16} /> Schedule
           </Link>
           <Link
+            href="/dashboard/student/history"
+            className={cn(
+              'flex items-center gap-2 hover:text-[#4380f0]',
+              pathname === '/dashboard/student/history' && 'text-[#4380f0] font-bold'
+            )}
+          >
+            <CalendarIcon size={16} /> History
+          </Link>
+          <Link
             href="/dashboard/student/messages"
             className={cn(
               'flex items-center gap-2 hover:text-[#4380f0]',
@@ -100,7 +115,13 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         {/* Header */}
         <header className="bg-[#4380f0] text-white flex justify-between items-center px-8 py-4">
           <h2 className="text-xl font-semibold capitalize">
-            {pathname.includes('/profile') ? 'Student Profile' : 'Dashboard'}
+            {pathname.includes('/profile')
+              ? 'Student Profile'
+              : pathname.includes('/schedule')
+              ? 'Schedule Session'
+              : pathname.includes('/history')
+              ? 'Session History'
+              : 'Dashboard'}
           </h2>
           <div className="w-10 h-10 relative rounded-full overflow-hidden border">
             <img
@@ -111,9 +132,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           </div>
         </header>
 
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
       </main>
     </div>
   );
