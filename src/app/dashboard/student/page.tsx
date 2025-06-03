@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import withAuth from '@/lib/withAuth';
 import { useEffect, useState } from 'react';
+import withAuth from '@/lib/withAuth';
 
 type Session = {
   id: string;
@@ -20,7 +20,7 @@ type Availability = {
   end_time: string;
 };
 
-export default withAuth(function StudentDashboard({ user }: { user?: any }) {
+function StudentDashboard({ user }: { user?: any }) {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
@@ -100,7 +100,15 @@ export default withAuth(function StudentDashboard({ user }: { user?: any }) {
                   {new Date(s.schedule_time).toLocaleDateString()} - {new Date(s.schedule_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
                 <p className="text-sm italic text-gray-600">{s.notes || '-'}</p>
-                <span className={`text-xs mt-1 inline-block px-2 py-1 rounded font-medium ${s.status === 'pending' ? 'bg-yellow-200 text-yellow-800' : s.status === 'accepted' ? 'bg-blue-200 text-blue-800' : s.status === 'completed' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
+                <span className={`text-xs mt-1 inline-block px-2 py-1 rounded font-medium ${
+                  s.status === 'pending'
+                    ? 'bg-yellow-200 text-yellow-800'
+                    : s.status === 'accepted'
+                    ? 'bg-blue-200 text-blue-800'
+                    : s.status === 'completed'
+                    ? 'bg-green-200 text-green-800'
+                    : 'bg-red-200 text-red-800'
+                }`}>
                   {s.status}
                 </span>
               </div>
@@ -134,4 +142,6 @@ export default withAuth(function StudentDashboard({ user }: { user?: any }) {
       </section>
     </div>
   );
-});
+}
+
+export default withAuth(StudentDashboard, ['student']);

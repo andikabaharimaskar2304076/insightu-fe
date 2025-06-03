@@ -145,7 +145,11 @@ export default function SchedulePage() {
           <div key={p.user_id} className="p-4 border rounded bg-white shadow-sm">
             <div className="flex items-center gap-4">
               <img
-                src={p.avatar.startsWith('http') ? p.avatar : `http://localhost:8000${p.avatar}`}
+                src={
+                  p.avatar
+                    ? (p.avatar.startsWith('http') ? p.avatar : `http://localhost:8000${p.avatar}`)
+                    : '/images/default-avatar.png'
+                }
                 alt={p.username}
                 className="w-16 h-16 rounded-full object-cover"
               />
