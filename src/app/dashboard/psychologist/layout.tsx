@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   CalendarIcon,
@@ -14,11 +15,39 @@ import {
 export default function PsychologistLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [avatar, setAvatar] = useState<string>('');
 
   const handleLogout = () => {
     localStorage.removeItem('access');
     router.push('/');
   };
+
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/v1/psychologist-profile/', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access')}`,
+          },
+        });
+        const data = await res.json();
+        const avatarPath = data.address_avatar;
+
+        if (avatarPath?.startsWith('/media')) {
+          setAvatar(`http://localhost:8000${avatarPath}`);
+        } else if (avatarPath?.startsWith('http')) {
+          setAvatar(avatarPath);
+        } else {
+          setAvatar('/images/default-avatar.png');
+        }
+      } catch (err) {
+        console.error('Failed to fetch avatar:', err);
+        setAvatar('/images/default-avatar.png');
+      }
+    };
+
+    fetchAvatar();
+  }, []);
 
   return (
     <div className="min-h-screen flex">
@@ -98,7 +127,7 @@ export default function PsychologistLayout({ children }: { children: React.React
           </h2>
           <div className="w-10 h-10 relative rounded-full overflow-hidden border">
             <img
-              src="/images/default-avatar.png"
+              src={avatar || '/images/default-avatar.png'}
               alt="Avatar"
               className="w-full h-full object-cover"
             />
