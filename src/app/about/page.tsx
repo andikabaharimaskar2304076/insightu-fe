@@ -9,21 +9,25 @@ const teamMembers = [
   {
     id: 1,
     name: "Mochammad Syahrul Ramadhan",
+    nim: "2300878",
     image: "/images/astronaut.png",
   },
   {
     id: 2,
     name: "Andika Bahari Maskar",
+    nim: "2304076",
     image: "/images/astronaut.png",
   },
   {
     id: 3,
     name: "M.Syukri Yazid Muzaki",
+    nim: "2305166",
     image: "/images/astronaut.png",
   },
   {
     id: 4,
     name: "Khairunnisak",
+    nim: "2300424",
     image: "/images/astronaut.png",
   },
 ];
@@ -86,10 +90,12 @@ export default function AboutPage() {
                   <img
                     src={member.image}
                     alt={member.name}
+                    
                     className="w-full h-full object-cover rounded-full"
                   />
                 </div>
                 <div className="text-lg font-semibold text-gray-800">{member.name}</div>
+                <div className="text-sm font-semibold text-gray-600">NIM: {member.nim}</div>
               </Card>
             ))}
           </div>
