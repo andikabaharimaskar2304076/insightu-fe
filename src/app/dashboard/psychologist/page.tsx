@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import axios from 'axios';
 import dayjs from 'dayjs';
+import withAuth from '@/lib/withAuth';
 
 const availabilitySchema = z.object({
   availabilities: z.array(z.object({
@@ -42,7 +43,7 @@ const availabilitySchema = z.object({
 
 type AvailabilityFormValues = z.infer<typeof availabilitySchema>;
 
-export default function PsychologistDashboardPage() {
+function PsychologistDashboardPage({ user }: { user?: any }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -155,7 +156,7 @@ export default function PsychologistDashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold">Dashboard Psikolog</h2>
-          <p className="text-gray-600">Halo, Sandy</p>
+          <p className="text-gray-600">Halo, {user?.username || 'Psikolog'}</p>
         </div>
       </div>
 
@@ -298,3 +299,5 @@ export default function PsychologistDashboardPage() {
     </div>
   );
 }
+
+export default withAuth(PsychologistDashboardPage, ['psychologist']);
