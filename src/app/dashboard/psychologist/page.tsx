@@ -1,8 +1,7 @@
-// Next.js + React Client Component
 'use client';
 
 import {
-  MessageSquareIcon, PlusCircleIcon, Undo2Icon, Trash2
+  MessageSquareIcon, Undo2Icon, Trash2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -47,6 +46,7 @@ function PsychologistDashboardPage({ user }: { user?: any }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
+  const isVerified = user?.is_verified ?? false; // ✅ ambil langsung dari user
 
   const form = useForm<AvailabilityFormValues>({
     resolver: zodResolver(availabilitySchema),
@@ -69,8 +69,8 @@ function PsychologistDashboardPage({ user }: { user?: any }) {
       const formatted = data.map((item: any) => ({
         ...item,
         db_id: item.id,
-        start_time: item.start_time.slice(0, 5), // HH:mm
-        end_time: item.end_time.slice(0, 5),     // HH:mm
+        start_time: item.start_time.slice(0, 5),
+        end_time: item.end_time.slice(0, 5),
       }));
       replace(formatted);
     } catch (error) {
@@ -150,6 +150,22 @@ function PsychologistDashboardPage({ user }: { user?: any }) {
     fetchAvailabilities();
     fetchSessions();
   }, []);
+
+  if (!isVerified) {
+    return (
+      <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-6 py-4 rounded">
+        <h2 className="text-xl font-bold mb-2">Akun Belum Terverifikasi</h2>
+        <p>Untuk mengakses dashboard, silakan lengkapi profil Anda dan lakukan verifikasi.</p>
+        <button
+          onClick={() => router.push('/dashboard/psychologist/profile')}
+          className="mt-4 inline-block bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded"
+        >
+          Lengkapi Profil & Verifikasi
+        </button>
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-6">

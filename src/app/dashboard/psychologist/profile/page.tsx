@@ -9,7 +9,14 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
 
 const psychologistProfileSchema = z.object({
   license_number: z.string(),
@@ -24,6 +31,8 @@ export default function PsychologistProfilePage() {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string>('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
 
   const form = useForm<PsychologistProfileSchema>({
     resolver: zodResolver(psychologistProfileSchema),
@@ -47,6 +56,9 @@ export default function PsychologistProfilePage() {
         specialization: data.specialization || '',
         biography: data.biography || '',
       });
+      setIsVerified(data.is_verified);
+      setIsComplete(data.is_complete);
+
       if (data.address_avatar?.startsWith('http')) {
         setPreview(data.address_avatar);
       } else if (data.address_avatar?.startsWith('/media')) {
@@ -88,7 +100,6 @@ export default function PsychologistProfilePage() {
     setLoading(true);
     try {
       await uploadAvatar();
-      await fetchProfile();
       const res = await fetch('http://localhost:8000/api/v1/psychologist-profile/', {
         method: 'PUT',
         headers: {
@@ -99,6 +110,7 @@ export default function PsychologistProfilePage() {
       });
       if (res.ok) {
         alert('Profile updated successfully');
+        fetchProfile();
       } else {
         const error = await res.text();
         alert('Failed to update profile: ' + error);
@@ -107,6 +119,26 @@ export default function PsychologistProfilePage() {
       console.error('Update failed:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerification = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/psychologist-profile/verify/', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`,
+        },
+      });
+      if (res.ok) {
+        alert('Akun berhasil diverifikasi!');
+        fetchProfile();
+      } else {
+        const errText = await res.text();
+        alert('Gagal verifikasi: ' + errText);
+      }
+    } catch (err) {
+      console.error('Verifikasi error:', err);
     }
   };
 
@@ -173,6 +205,20 @@ export default function PsychologistProfilePage() {
           </Button>
         </form>
       </Form>
+
+      {!isVerified && isComplete && (
+        <Button
+          className="w-full bg-green-600 hover:bg-green-700 text-white"
+          onClick={handleVerification}
+        >
+          Verifikasi Akun
+        </Button>
+      )}
+      {!isVerified && !isComplete && (
+        <p className="text-sm text-red-600 text-center">
+          Lengkapi semua data untuk bisa verifikasi akun.
+        </p>
+      )}
     </div>
   );
 }

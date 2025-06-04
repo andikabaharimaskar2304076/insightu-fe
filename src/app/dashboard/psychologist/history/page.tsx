@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import {
@@ -18,6 +19,27 @@ export default function PsychologistHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [verified, setVerified] = useState<boolean | null>(null);
+  const router = useRouter();
+
+  const checkVerification = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/me/', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`,
+        },
+      });
+      const data = await res.json();
+      if (!data.is_verified) {
+        router.push('/dashboard/psychologist/profile');
+      } else {
+        setVerified(true);
+      }
+    } catch (err) {
+      console.error('Failed to verify psychologist', err);
+      setVerified(false);
+    }
+  };
 
   const fetchSessions = async () => {
     try {
@@ -59,10 +81,12 @@ export default function PsychologistHistoryPage() {
   };
 
   useEffect(() => {
-    fetchSessions();
+    checkVerification().then(() => {
+      fetchSessions();
+    });
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading || verified === null) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
   if (sessions.length === 0)
     return <div className="text-center text-lg">Belum ada riwayat sesi.</div>;
@@ -73,7 +97,6 @@ export default function PsychologistHistoryPage() {
         Riwayat Sesi Konseling
       </h2>
 
-      {/* ✅ Notifikasi Sukses */}
       {successMessage && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
           <strong className="font-bold">Sukses..! </strong>

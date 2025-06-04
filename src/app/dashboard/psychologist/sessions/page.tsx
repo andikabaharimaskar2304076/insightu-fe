@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -17,6 +18,27 @@ export default function PsychologistSessionsPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [verified, setVerified] = useState<boolean | null>(null);
+  const router = useRouter();
+
+  const checkVerification = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/me/", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access")}`,
+        },
+      });
+      const data = await res.json();
+      if (!data.is_verified) {
+        router.push("/dashboard/psychologist/profile");
+      } else {
+        setVerified(true);
+      }
+    } catch (err) {
+      console.error("Failed to verify psychologist", err);
+      setVerified(false);
+    }
+  };
 
   const getSessions = async () => {
     try {
@@ -55,10 +77,12 @@ export default function PsychologistSessionsPage() {
   };
 
   useEffect(() => {
-    getSessions();
+    checkVerification().then(() => {
+      getSessions();
+    });
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading || verified === null) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
   if (sessions.length === 0)
     return <div className="text-center text-lg">Tidak ada permintaan sesi baru.</div>;
