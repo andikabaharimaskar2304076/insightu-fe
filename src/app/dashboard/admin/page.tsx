@@ -1,112 +1,62 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { UsersIcon, UserCheckIcon, UserIcon, CalendarClockIcon } from 'lucide-react';
 
-type User = {
-  id: string;
-  username: string;
-  email: string;
-  role: 'student' | 'psychologist';
-  psychologist_profile?: {
-    license_number: string;
-    specialization: string;
-    biography: string;
-  };
-  student_profile?: {
-    nisn: string;
-    gender: string;
-    major: string;
-    homeroom_teacher: string;
-  };
+type Stats = {
+  total_users: number;
+  total_students: number;
+  total_psychologists: number;
+  total_sessions: number;
 };
 
 export default function AdminDashboardPage() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  const fetchVerificationList = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/v1/admin/verifications/', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
-        },
-      });
-      if (!res.ok) throw new Error('Gagal mengambil data');
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      toast.error('Gagal mengambil daftar user untuk diverifikasi');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerify = async (userId: string) => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/v1/verify/${userId}/`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
-        },
-      });
-      if (!res.ok) throw new Error('Verifikasi gagal');
-      toast.success('Akun berhasil diverifikasi');
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
-    } catch (err) {
-      toast.error('Gagal memverifikasi akun');
-    }
-  };
 
   useEffect(() => {
-    fetchVerificationList();
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/v1/admin/stats/', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access')}`,
+          },
+        });
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        console.error('Failed to fetch stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading || !stats) return <div className="p-6">Loading...</div>;
+
+  const card = (title: string, value: number, Icon: any, color: string) => (
+    <div className="bg-white border rounded-lg shadow p-4 flex items-center gap-4">
+      <div className={`p-3 rounded-full ${color} text-white`}>
+        <Icon size={24} />
+      </div>
+      <div>
+        <p className="text-gray-500 text-sm">{title}</p>
+        <p className="text-xl font-semibold">{value}</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="space-y-6 p-6">
-      <h2 className="text-2xl font-bold">Verifikasi Pengguna</h2>
-      {users.length === 0 ? (
-        <p className="text-gray-600">Tidak ada pengguna yang perlu diverifikasi.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {users.map((user) => (
-            <div key={user.id} className="border rounded-lg shadow p-4 bg-white space-y-2">
-              <h3 className="text-lg font-semibold">{user.username}</h3>
-              <p className="text-sm text-gray-600">{user.email}</p>
-              <p className="text-sm font-medium text-blue-700 capitalize">Role: {user.role}</p>
-
-              {user.role === 'psychologist' && user.psychologist_profile && (
-                <div className="text-sm text-gray-700 space-y-1 mt-2">
-                  <p><strong>License:</strong> {user.psychologist_profile.license_number}</p>
-                  <p><strong>Specialization:</strong> {user.psychologist_profile.specialization}</p>
-                  <p><strong>Biography:</strong> {user.psychologist_profile.biography}</p>
-                </div>
-              )}
-
-              {user.role === 'student' && user.student_profile && (
-                <div className="text-sm text-gray-700 space-y-1 mt-2">
-                  <p><strong>NISN:</strong> {user.student_profile.nisn}</p>
-                  <p><strong>Gender:</strong> {user.student_profile.gender}</p>
-                  <p><strong>Major:</strong> {user.student_profile.major}</p>
-                  <p><strong>Homeroom:</strong> {user.student_profile.homeroom_teacher}</p>
-                </div>
-              )}
-
-              <Button
-                onClick={() => handleVerify(user.id)}
-                className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white"
-              >
-                Verifikasi Akun
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {card('Total Users', stats.total_users, UsersIcon, 'bg-blue-500')}
+        {card('Students', stats.total_students, UserIcon, 'bg-green-500')}
+        {card('Psychologists', stats.total_psychologists, UserCheckIcon, 'bg-purple-500')}
+        {card('Total Sessions', stats.total_sessions, CalendarClockIcon, 'bg-orange-500')}
+      </div>
     </div>
   );
 }

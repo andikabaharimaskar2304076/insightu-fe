@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-// Notifikasi hijau sukses
 function AlertBox({ message, onClose }: { message: string; onClose: () => void }) {
   return (
     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mt-4" role="alert">
@@ -51,6 +51,27 @@ export default function SchedulePage() {
   const [purpose, setPurpose] = useState('');
   const [takenSlots, setTakenSlots] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [checking, setChecking] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkVerification = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/v1/me/', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('access')}` },
+        });
+        const data = await res.json();
+        setIsVerified(data.is_verified === true);
+      } catch (err) {
+        console.error('Verification error:', err);
+        setIsVerified(false);
+      } finally {
+        setChecking(false);
+      }
+    };
+    checkVerification();
+  }, []);
 
   useEffect(() => {
     const fetchPsychologists = async () => {
@@ -136,6 +157,24 @@ export default function SchedulePage() {
       alert('Error: ' + JSON.stringify(result));
     }
   };
+
+  if (checking) return <div>Loading...</div>;
+
+  if (!isVerified) {
+    return (
+      <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-6 py-4 rounded">
+        <h2 className="text-xl font-bold mb-2">Akun Belum Terverifikasi</h2>
+        <p>Untuk mengakses halaman ini, silakan lengkapi profil Anda dan tunggu proses verifikasi.</p>
+        <button
+          onClick={() => router.push('/dashboard/student/profile')}
+          className="mt-4 inline-block bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded"
+        >
+          Lengkapi Profil & Verifikasi
+        </button>
+      </div>
+    );
+  }
+  
 
   return (
     <div className="flex flex-col md:flex-row gap-10 p-6">

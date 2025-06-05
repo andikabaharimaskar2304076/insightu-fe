@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import withAuth from '@/lib/withAuth';
+import { useRouter } from 'next/navigation';
 
-type Session = {
+// Type Definitions
+interface Session {
   id: string;
   schedule_time: string;
   notes: string;
@@ -12,30 +14,33 @@ type Session = {
     id: string;
     username: string;
   };
-};
+}
 
-type Availability = {
+interface Availability {
   day_of_week: string;
   start_time: string;
   end_time: string;
-};
+}
 
 function StudentDashboard({ user }: { user?: any }) {
+  const router = useRouter();
   const [avatar, setAvatar] = useState<string | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
+  const [isVerified, setIsVerified] = useState(true);
 
   useEffect(() => {
-    const fetchAvatar = async () => {
+    const fetchProfile = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/v1/student-profile/', {
+        const res = await fetch('http://localhost:8000/api/v1/me/', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('access')}`,
           },
         });
         const data = await res.json();
-        const avatarPath = data.address_avatar;
+        setIsVerified(data.is_verified);
 
+        const avatarPath = data.address_avatar;
         if (avatarPath?.startsWith('/media')) {
           setAvatar(`http://localhost:8000${avatarPath}`);
         } else if (avatarPath?.startsWith('http')) {
@@ -44,7 +49,8 @@ function StudentDashboard({ user }: { user?: any }) {
           setAvatar(null);
         }
       } catch (err) {
-        console.error('Failed to fetch avatar:', err);
+        console.error('Failed to fetch student profile:', err);
+        router.push('/login');
       }
     };
 
@@ -69,20 +75,34 @@ function StudentDashboard({ user }: { user?: any }) {
       setAvailabilities(allAvailabilities);
     };
 
-    fetchAvatar();
+    fetchProfile();
     fetchSessions();
     fetchAvailabilities();
-  }, []);
+  }, [router]);
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const avatarUrl = avatar || '/images/default-avatar.png';
 
+  if (!isVerified) {
+    return (
+      <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-6 py-4 rounded">
+        <h2 className="text-xl font-bold mb-2">Akun Belum Terverifikasi</h2>
+        <p>Silakan lengkapi profil Anda untuk mengakses dashboard siswa.</p>
+        <button
+          onClick={() => router.push('/dashboard/student/profile')}
+          className="mt-4 inline-block bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded"
+        >
+          Lengkapi Profil & Verifikasi
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Welcome section */}
       <section className="flex items-center gap-4">
-        <img src={avatarUrl} className="w-12 h-12 rounded-full object-cover border" alt="Avatar" />
         <h3 className="text-lg font-semibold">Selamat datang kembali, {user?.username || 'User'}!</h3>
       </section>
 

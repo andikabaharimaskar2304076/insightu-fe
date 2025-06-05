@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type Session = {
   id: string;
@@ -15,9 +16,31 @@ type Session = {
 
 export default function HistoryPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [verified, setVerified] = useState<boolean | null>(null);
+  const router = useRouter();
 
-  useEffect(() => {
-    const fetchHistory = async () => {
+  const checkVerification = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/me/', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`,
+        },
+      });
+      const data = await res.json();
+      if (!data.is_verified) {
+        setVerified(false);
+      } else {
+        setVerified(true);
+      }
+    } catch (err) {
+      console.error('Failed to verify user', err);
+      setVerified(false);
+    }
+  };
+
+  const fetchHistory = async () => {
+    try {
       const res = await fetch('http://localhost:8000/api/v1/sessions/history/', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access')}`,
@@ -25,10 +48,35 @@ export default function HistoryPage() {
       });
       const data = await res.json();
       setSessions(data);
-    };
+    } catch (err) {
+      console.error('Failed to fetch session history:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchHistory();
+  useEffect(() => {
+    checkVerification().then(() => {
+      fetchHistory();
+    });
   }, []);
+
+  if (loading || verified === null) return <div>Loading...</div>;
+
+  if (!verified) {
+    return (
+      <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-6 py-4 rounded">
+        <h2 className="text-xl font-bold mb-2">Akun Belum Terverifikasi</h2>
+        <p>Silakan lengkapi profil Anda terlebih dahulu sebelum melihat riwayat sesi.</p>
+        <button
+          onClick={() => router.push('/dashboard/student/profile')}
+          className="mt-4 inline-block bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded"
+        >
+          Lengkapi Profil & Verifikasi
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -33,6 +33,8 @@ export default function StudentProfilePage() {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string>('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
+  const [canVerify, setCanVerify] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(studentProfileSchema),
@@ -83,6 +85,18 @@ export default function StudentProfilePage() {
           school_name: data.school_name || '',
           grade_level: data.grade_level || '',
         });
+
+        setIsVerified(data.is_verified || false);
+        setCanVerify(
+          !!data.nisn &&
+          !!data.homeroom_teacher &&
+          !!data.gender &&
+          !!data.major &&
+          !!data.birth_date &&
+          !!data.school_name &&
+          !!data.grade_level
+        );
+
         if (data.address_avatar?.startsWith('http')) {
           setPreview(data.address_avatar);
         } else if (data.address_avatar?.startsWith('/media')) {
@@ -142,6 +156,25 @@ export default function StudentProfilePage() {
       console.error('Update failed:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerification = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/student-profile/verify/', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`,
+        },
+      });
+      if (res.ok) {
+        alert('Permintaan verifikasi berhasil dikirim!');
+      } else {
+        const err = await res.text();
+        alert('Gagal verifikasi: ' + err);
+      }
+    } catch (err) {
+      console.error('Verifikasi error:', err);
     }
   };
 
@@ -226,6 +259,17 @@ export default function StudentProfilePage() {
           </Button>
         </form>
       </Form>
+
+      {!isVerified && canVerify && (
+        <Button className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={handleVerification}>
+          Verifikasi Akun
+        </Button>
+      )}
+      {!isVerified && !canVerify && (
+        <p className="text-sm text-red-600 text-center">
+          Lengkapi semua data untuk bisa verifikasi akun.
+        </p>
+      )}
     </div>
   );
 }
